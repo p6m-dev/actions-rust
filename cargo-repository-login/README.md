@@ -1,5 +1,7 @@
 # Cargo Registry Login
 
+[parent](../README.md)
+
 A GitHub Action for configuring Cargo registry authentication using environment variables.
 
 ## Overview

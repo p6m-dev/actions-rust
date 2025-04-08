@@ -1,5 +1,7 @@
 # Bump Version and Create Git Tag
 
+[parent](../README.md)
+
 A GitHub Action that automates version bumping and Git tag creation for Rust
 projects using semantic versioning.
 
@@ -149,8 +151,8 @@ jobs:
           profile: minimal
 
       - name: Bump Version and Create Tag
-        id: bump-version
-        uses: ./.github/actions/version-tag
+        id: cut-tag
+        uses: p6m-dev/actions-rust/cut-tag@v1
         with:
           bump-level: ${{ github.event.inputs.level }}
           allow-branch: ${{ github.event.inputs.branch }}

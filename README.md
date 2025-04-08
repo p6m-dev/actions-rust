@@ -21,3 +21,6 @@ requirements of a give project, some actions may be useful while others are not.
 As an example, not every project produces GraphQL Subgraphs, or publishes
 artifacts to an Artifact Management System.
 
+### [Cut Tag (cut-tag)](cut-tag/README.md)
+
+Bumps version numbers and Cuts Tags

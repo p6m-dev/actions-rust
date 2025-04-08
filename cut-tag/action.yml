@@ -1,0 +1,82 @@
+name: "Bump Version and Create Git Tag"
+description: "Creates a Git tag based on semantic versioning"
+author: "Ybor Technology"
+
+inputs:
+  bump-level:
+    description: "Version bump level (major, minor, patch)"
+    required: true
+    default: "patch"
+  allow-branch:
+    description: "Branch to allow version bumping on"
+    required: false
+    default: "main"
+  commit-message:
+    description: "Commit message template for version bump (use %v for version)"
+    required: false
+    default: "Release %v [skip ci]"
+  commit-user-name:
+    description: "Git user name for the commit"
+    required: false
+    default: "github-actions"
+  commit-user-email:
+    description: "Git user email for the commit"
+    required: false
+    default: "github-actions@users.noreply.github.com"
+  no-individual-tags:
+    description: "Do not create individual tags for each workspace"
+    required: false
+    default: "true"
+  force-all:
+    description: "Force version for all packages"
+    required: false
+    default: "true"
+
+outputs:
+  version:
+    description: "The new version that was created"
+    value: ${{ steps.capture.outputs.version }}
+  tag:
+    description: "The Git tag that was created (v prefixed version)"
+    value: v${{ steps.capture.outputs.version }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install cargo-workspaces
+      uses: baptiste0928/cargo-install@v3
+      with:
+        crate: cargo-workspaces
+
+    - name: Configure Git
+      shell: bash
+      run: |
+        git config user.name ${{ inputs.commit-user-name }}
+        git config user.email ${{ inputs.commit-user-email }}
+
+    - name: Bump Version
+      shell: bash
+      run: |
+        no_individual_tags_flag=""
+        if [ "${{ inputs.no-individual-tags }}" = "true" ]; then
+          no_individual_tags_flag="--no-individual-tags"
+        fi
+
+        force_flag=""
+        if [ "${{ inputs.force-all }}" = "true" ]; then
+          force_flag="--force '*'"
+        fi
+
+        cargo workspaces version ${{ inputs.bump-level }} -y \
+          --allow-branch ${{ inputs.allow-branch }} \
+          -m "${{ inputs.commit-message }}" \
+          $no_individual_tags_flag \
+          $force_flag
+
+    - name: Capture Version
+      id: capture
+      shell: bash
+      run: |
+        version=$(cargo workspaces list --json | jq '.[0].version' -r)
+        echo "Release Version: v${version}"
+        echo "version=${version}" >> "$GITHUB_OUTPUT"

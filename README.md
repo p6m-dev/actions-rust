@@ -24,3 +24,7 @@ artifacts to an Artifact Management System.
 ### [Cut Tag (cut-tag)](cut-tag/README.md)
 
 Bumps version numbers and Cuts Tags
+
+### [Cargo Repository Login](cargo-repository-login/README.md)
+
+Logs into a Cargo Repository to allow publishing

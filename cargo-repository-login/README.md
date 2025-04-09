@@ -62,6 +62,19 @@ For each registry token provided:
 
    Note: Registry names are transformed to uppercase with hyphens converted to underscores.
 
+### Environment Variables vs `cargo login`
+
+We use environment variables as opposed to any of the other methods because it integrates seamlessly with [rust's cross tool](https://github.com/cross-rs/cross). This allows this action to be used identically regardless of whether it is part of a workflow leveraging `cross` or just using pure `cargo`.
+
+There are three methods that can be used to login to a cargo registry:
+1. Running the `cargo login` command and setting up the `~/.cargo/config.toml` file.
+2. Setting up the `~/.cargo/config.toml` and `~/.cargo/credentials.toml` files.
+3. Using environment variables as in this action.
+
+By default, cross will pass through environment variables prefixed with `CARGO_` to its build environment (i.e. Docker container) so authentication will "just work". That is not the case when using files for authentication as the user will have to manually mount the `~/.cargo/config.toml` and `~/.cargo/credentials.toml` files to the build environment by setting `CROSS_BUILD_OPTS` — since `cargo login` just creates `~/.cargo/credentials.toml` it has the same issue.
+
+We opt not to set `CROSS_BUILD_OPTS` as part of this action because it would be overwritten if the user needs to set `CROSS_BUILD_OPTS` for their own purposes later in the workflow.
+
 ## Example
 
 ### Basic authentication with crates.io

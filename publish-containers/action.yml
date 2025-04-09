@@ -1,0 +1,148 @@
+name: "Publish Rust Containers"
+description: "Builds and publishes Docker containers for Rust applications"
+
+inputs:
+  mode:
+    description: "Release or Debug mode"
+    required: false
+    default: "release"
+  docker_registry:
+    description: "The hostname of the Docker registry to publish to"
+    required: true
+  docker_username:
+    description: "The username to use for Docker registry authentication"
+    required: true
+  docker_password:
+    description: "The password to use for Docker registry authentication"
+    required: true
+  docker_image_name:
+    description: "The namespaced Docker image name"
+    required: false
+    default: ${{ github.repository }}
+  docker_context:
+    description: "The path to the Docker context to build"
+    required: false
+    default: "."
+  dockerfile:
+    description: "The absolute path to the Dockerfile to build"
+    required: false
+    default: "./Dockerfile"
+  git_ref:
+    description: "The Git reference (branch, tag, or SHA) to build from"
+    required: false
+    default: ${{ github.ref }}
+
+outputs:
+  digest:
+    description: "The docker image digest for the built image"
+    value: ${{ steps.docker_build.outputs.digest }}
+  version:
+    description: "The version of the package being built"
+    value: ${{ steps.pkg-version.outputs.VERSION }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ inputs.git_ref }}
+
+    - name: Cache dependencies
+      uses: Swatinem/rust-cache@v2
+      with:
+        key: build-${{ inputs.mode }}
+
+    - name: Install rust cross
+      uses: baptiste0928/cargo-install@v3
+      with:
+        crate: cross
+        git: https://github.com/cross-rs/cross
+      shell: bash
+
+    - name: Install cargo-workspaces
+      uses: baptiste0928/cargo-install@v3
+      with:
+        crate: cargo-workspaces
+      shell: bash
+
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v3
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Get Package Version
+      id: pkg-version
+      run: |
+        # List workspace packages with JSON output
+        # Parse the output using JQ to get the version of the first package
+        echo "VERSION=$(cargo workspaces list --json | jq -r '.[0].version')" >> $GITHUB_OUTPUT
+      shell: bash
+
+    - name: Build for x86_64
+      env:
+        CARGO_INCREMENTAL: "1"
+      run: |
+        if [ "${{ inputs.mode }}" = "release" ]; then
+          cross build --release --target=x86_64-unknown-linux-gnu
+        else
+          cross build --target=x86_64-unknown-linux-gnu
+        fi
+      shell: bash
+
+    - name: Build for aarch64
+      env:
+        CARGO_INCREMENTAL: "1"
+      run: |
+        if [ "${{ inputs.mode }}" = "release" ]; then
+          cross build --release --target=aarch64-unknown-linux-gnu
+        else
+          cross build --target=aarch64-unknown-linux-gnu
+        fi
+      shell: bash
+
+    - name: Login to Docker Repo
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ inputs.docker_registry }}
+        username: ${{ inputs.docker_username }}
+        password: ${{ inputs.docker_password }}
+
+    - name: Docker meta
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: |
+          ${{ inputs.docker_registry }}/${{ inputs.docker_image_name }}
+        tags: |
+          type=raw,value=latest,enable={{is_default_branch}}
+          type=raw,value=${{ steps.pkg-version.outputs.VERSION }},enable={{is_default_branch}}
+          type=ref,event=branch,prefix=${{ steps.pkg-version.outputs.VERSION }}-,enable=${{ github.ref_name != 'main' }}
+          type=sha
+
+    - name: Build and push
+      id: docker_build
+      uses: docker/build-push-action@v6
+      with:
+        context: ${{ inputs.docker_context }}
+        file: ${{ inputs.dockerfile }}
+        pull: true
+        push: true
+        platforms: linux/amd64,linux/arm64
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha
+        build-args: |
+          MODE=${{ inputs.mode }}
+
+    - name: Record Summary
+      run: |
+        echo "Rust Application version: ${{ steps.pkg-version.outputs.VERSION }}" >> $GITHUB_STEP_SUMMARY
+        echo "Docker image digest: ${{ steps.docker_build.outputs.digest }}" >> $GITHUB_STEP_SUMMARY
+        echo "### Docker Tags" >> $GITHUB_STEP_SUMMARY
+        echo "```" >> $GITHUB_STEP_SUMMARY
+        echo "${{ steps.meta.outputs.tags }}" >> $GITHUB_STEP_SUMMARY
+        echo "```" >> $GITHUB_STEP_SUMMARY
+      shell: bash

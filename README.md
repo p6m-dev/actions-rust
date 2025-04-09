@@ -29,7 +29,7 @@ Logs into a Cargo Repository to allow publishing
 
 Bumps version numbers and Cuts Tags
 
-### [Publish Containers (publish-containers)](/publish-crates/README.md)
+### [Publish Containers (publish-containers)](/publish-containers/README.md)
 
 Publishes Docker Containers
 

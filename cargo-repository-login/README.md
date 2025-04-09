@@ -14,7 +14,7 @@ Add this action to your workflow to authenticate with Cargo registries:
 
 ```yaml
 - name: Login to Cargo registries
-  uses: p6m-dev/actions/rust/cargo-registry-login@v1
+  uses: p6m-dev/actions-rust/cargo-registry-login@v1
   with:
     cargo-tokens: |
       crates-io=your-crates-io-token
@@ -82,7 +82,7 @@ We opt not to set `CROSS_BUILD_OPTS` as part of this action because it would be 
 
 ```yaml
 - name: Login to crates.io
-  uses: your-org/cargo-registry-login@v1
+  uses: p6m-dev/actions-rust/cargo-registry-login@v1
   with:
     cargo-tokens: crates-io=your-crates-io-token
 ```
@@ -91,7 +91,7 @@ We opt not to set `CROSS_BUILD_OPTS` as part of this action because it would be 
 
 ```yaml
 - name: Login to Cargo registries
-  uses: your-org/cargo-registry-login@v1
+  uses: p6m-dev/actions-rust/cargo-registry-login@v1
   with:
     cargo-tokens: |
       crates-io=your-crates-io-token
@@ -105,7 +105,7 @@ It's recommended to store tokens as GitHub secrets:
 
 ```yaml
 - name: Login to Cargo registries
-  uses: your-org/cargo-registry-login@v1
+  uses: p6m-dev/actions-rust/cargo-registry-login@v1
   with:
     cargo-tokens: |
       crates-io=${{ secrets.CRATES_IO_TOKEN }}

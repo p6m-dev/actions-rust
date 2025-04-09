@@ -1,0 +1,99 @@
+name: "Publish Rust Workspace Crates"
+description: "Publish crates from a Rust workspace using cargo-workspaces"
+author: "Ybor"
+
+inputs:
+  dry_run:
+    description: "Perform a dry run without actually publishing"
+    required: false
+    default: "false"
+  crates_to_publish:
+    description: "Optional specific crates to publish (comma-separated)"
+    required: false
+  ignore_crates:
+    description: "Optional crates to ignore during publishing (comma-separated)"
+    required: false
+  registry:
+    description: "Registry to publish to (defaults to crates.io)"
+    required: false
+    default: "crates.io"
+  no_verify:
+    description: "Skip verification step"
+    required: false
+    default: "false"
+  allow_dirty:
+    description: "Allow dirty working directory"
+    required: false
+    default: "false"
+  from_git:
+    description: "Use current git tag as version"
+    required: false
+    default: "false"
+  exact:
+    description: "Specify exact version dependencies between workspace crates"
+    required: false
+    default: "true"
+  all_features:
+    description: "Activate all available features"
+    required: false
+    default: "false"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Setup Rust toolchain
+      uses: dtolnay/rust-toolchain@stable
+      shell: bash
+
+    - name: Install cargo-workspaces
+      uses: baptiste0928/cargo-install@v3
+      with:
+        crate: cargo-workspaces
+
+    - name: Publish Crates
+      run: |
+        CMD="cargo workspaces publish"
+
+        # Add flags based on inputs
+        if [[ "${{ inputs.dry_run }}" == "true" ]]; then
+          CMD="$CMD --dry-run"
+        fi
+
+        if [[ -n "${{ inputs.crates_to_publish }}" ]]; then
+          CMD="$CMD --only ${{ inputs.crates_to_publish }}"
+        fi
+
+        if [[ -n "${{ inputs.ignore_crates }}" ]]; then
+          CMD="$CMD --skip ${{ inputs.ignore_crates }}"
+        fi
+
+        if [[ "${{ inputs.registry }}" != "crates.io" ]]; then
+          CMD="$CMD --registry ${{ inputs.registry }}"
+        fi
+
+        if [[ "${{ inputs.no_verify }}" == "true" ]]; then
+          CMD="$CMD --no-verify"
+        fi
+
+        if [[ "${{ inputs.allow_dirty }}" == "true" ]]; then
+          CMD="$CMD --allow-dirty"
+        fi
+
+        if [[ "${{ inputs.from_git }}" == "true" ]]; then
+          CMD="$CMD --from-git"
+        fi
+
+        if [[ "${{ inputs.exact }}" == "true" ]]; then
+          CMD="$CMD --exact"
+        fi
+
+        if [[ "${{ inputs.all_features }}" == "true" ]]; then
+          CMD="$CMD --all-features"
+        fi
+
+        # Don't create any tags or commits as requested
+        CMD="$CMD --no-git-commit --no-git-push --no-git-tag"
+
+        echo "Executing: $CMD"
+        $CMD
+      shell: bash

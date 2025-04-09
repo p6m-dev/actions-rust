@@ -21,10 +21,14 @@ requirements of a give project, some actions may be useful while others are not.
 As an example, not every project produces GraphQL Subgraphs, or publishes
 artifacts to an Artifact Management System.
 
+### [Cargo Repository Login (cargo-repository-login)](cargo-repository-login/README.md)
+
+Logs into a Cargo Repository to allow publishing
+
 ### [Cut Tag (cut-tag)](cut-tag/README.md)
 
 Bumps version numbers and Cuts Tags
 
-### [Cargo Repository Login (cargo-repository-login)](cargo-repository-login/README.md)
+### [Publish Crates (publish-crates)](/publish-crates/README.md)
 
-Logs into a Cargo Repository to allow publishing
+Publishes Cargo Crates

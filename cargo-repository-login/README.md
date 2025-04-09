@@ -4,7 +4,7 @@
 
 A GitHub Action for configuring Cargo registry authentication using environment variables.
 
-## Overview
+## Description
 
 This action configures Cargo registry authentication by setting the appropriate environment variables based on provided registry tokens. It supports authentication for crates.io and any custom registries.
 
@@ -67,6 +67,7 @@ For each registry token provided:
 We use environment variables as opposed to any of the other methods because it integrates seamlessly with [rust's cross tool](https://github.com/cross-rs/cross). This allows this action to be used identically regardless of whether it is part of a workflow leveraging `cross` or just using pure `cargo`.
 
 There are three methods that can be used to login to a cargo registry:
+
 1. Running the `cargo login` command and setting up the `~/.cargo/config.toml` file.
 2. Setting up the `~/.cargo/config.toml` and `~/.cargo/credentials.toml` files.
 3. Using environment variables as in this action.

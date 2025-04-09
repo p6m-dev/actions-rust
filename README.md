@@ -25,6 +25,6 @@ artifacts to an Artifact Management System.
 
 Bumps version numbers and Cuts Tags
 
-### [Cargo Repository Login](cargo-repository-login/README.md)
+### [Cargo Repository Login (cargo-repository-login)](cargo-repository-login/README.md)
 
 Logs into a Cargo Repository to allow publishing
